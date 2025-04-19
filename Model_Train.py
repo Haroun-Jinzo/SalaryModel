@@ -271,7 +271,7 @@ if __name__ == '__main__':
     plot_correlations(encoded_df)
     
     # Continue with training and evaluation
-    lr, rfr, dtr, xgb_model, x_test, y_test, train_columns, frequent_titles = train_models()
+    lr, rfr, dtr, xgb_model,svr_model , lasso_model, x_test, y_test, train_columns, frequent_titles = train_models()
     
     # Evaluate models
     print("\nLinear Regression Evaluation:")
@@ -283,7 +283,13 @@ if __name__ == '__main__':
     print("\nDecision Tree Evaluation:")
     evaluate_model(dtr, x_test, y_test)
 
-    print("\XGBoost evaluation")
+    print("\nXGBoost evaluation")
     evaluate_model(xgb_model, x_test, y_test)
-
+    
+    
     #here we print the SVR w Lasso regression algorithms
+    print("\nSVR evaluation")
+    evaluate_model(svr_model, x_test, y_test)
+    
+    print("\nLasso evaluation")
+    evaluate_model(lasso_model, x_test, y_test)
