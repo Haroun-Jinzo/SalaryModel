@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.svm import SVR
+from sklearn.linear_model import Lasso
 import warnings
 warnings.filterwarnings('ignore')
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -148,7 +150,22 @@ def train_models():
                 'subsample': [0.8, 1.0]
             }  
         },
-        #here put SVR w l lasso regression model
+         #here put SVR w l lasso regression model
+         'SVR': {
+            'model': SVR(),
+            'params': {
+                'kernel': ['linear', 'rbf'],
+                'C': [0.1, 1, 10],
+                'epsilon': [0.1, 0.2, 0.5]
+            }
+        },
+        'Lasso': {
+            'model': Lasso(),
+            'params': {
+                'alpha': [0.01, 0.1, 1.0, 10.0]
+            }
+        }
+       
     }
     
     scores = []
@@ -181,8 +198,13 @@ def train_models():
     xgb_model.fit(x_train, y_train)
     
     # here we will fit the SVR w lasso regression Model n7otou l value fe return
+    svr_model = SVR(kernel='linear', C=1.0, epsilon=0.1)
+    svr_model.fit(x_train, y_train)
 
-    return lr, rfr, dtr, xgb_model, x_test, y_test, train_columns, frequent_titles
+    lasso_model = Lasso(alpha=0.1)
+    lasso_model.fit(x_train, y_train)
+
+    return lr, rfr, dtr, xgb_model, svr_model , lasso_model, x_test, y_test, train_columns, frequent_titles
 
 
 # this is evaluation
