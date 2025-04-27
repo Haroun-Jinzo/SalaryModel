@@ -587,12 +587,9 @@ if __name__ == '__main__':
 
     print("\nLasso evaluation")
     evaluate_model(lasso_model, x_test, y_test, "Lasso evaluation")
-<<<<<<< HEAD
-=======
 
     models = [lr, rfr, dtr, xgb_model, svr_model, lasso_model]
     model_names = ['Linear Regression', 'Random Forest', 'Decision Tree', 
                 'XGBoost', 'SVR', 'Lasso']
 
     #plot_combined_roc(models, model_names, x_test, y_test)
->>>>>>> 583eefdacc368f40f6dbc992dd0b69d3467b2d38
