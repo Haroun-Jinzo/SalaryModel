@@ -26,7 +26,9 @@ from sklearn.metrics import (
 )
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import r2_score, explained_variance_score
-
+from sklearn.preprocessing import label_binarize
+from sklearn.metrics import roc_curve, auc
+from itertools import cycle
 
 # here we load data put csv file next to this script
 def load_data():
@@ -59,6 +61,59 @@ def encode_features(df):
     df = pd.concat([df, dummies], axis=1)
     df.drop('Job Title', axis=1, inplace=True)
     return df
+
+def clean_salary_data(df, min_job_count=5, max_experience=40):
+    """
+    Simple cleaning for salary prediction data
+    
+    Parameters:
+    df: Input DataFrame
+    min_job_count: Minimum job title occurrences to keep
+    max_experience: Maximum valid years of experience
+    
+    Returns: Cleaned DataFrame
+    """
+    df = df.copy()
+    
+    # 1. Clean column names
+    df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+    
+    # 2. Handle missing values
+    num_cols = ['age', 'years_of_experience', 'salary']
+    cat_cols = ['gender', 'education_level', 'job_title']
+    
+    # Fill numerical missing values with median
+    df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+    
+    # Fill categorical missing values with mode
+    df[cat_cols] = df[cat_cols].fillna(df[cat_cols].mode().iloc[0])
+    
+    # 3. Standardize categorical values
+    df['gender'] = df['gender'].str.lower().replace({
+        'm': 'male', 'f': 'female', 'male': 'male', 'female': 'female'
+    }).fillna('other')
+    
+    df['education_level'] = df['education_level'].str.lower().str.strip().replace({
+        "bachelor's degree": "bachelor's",
+        "master's degree": "master's",
+        "phd": "phd",
+        "ph.d": "phd"
+    }).str.title()
+    
+    # 4. Group rare job titles
+    job_counts = df['job_title'].value_counts()
+    df['job_title'] = df['job_title'].where(
+        df['job_title'].map(job_counts) >= min_job_count, 'Other'
+    )
+    
+    # 5. Handle outliers
+    df = df[
+        (df['years_of_experience'] <= max_experience) &
+        (df['salary'] > 0) &
+        (df['age'] >= 18)
+    ]
+    
+    return df.reset_index(drop=True)
 
 
 #here we create the visualiation data for now khalih lena im willing bch n7otou fel streamlit code maa 
@@ -240,8 +295,8 @@ def evaluate_model(model, x_test, y_test, ModelName=""):
     print(f"Precision: {precision_score(y_test_class, y_pred_class, average='weighted'):.4f}")
     print(f"Recall: {recall_score(y_test_class, y_pred_class, average='weighted'):.4f}")
 
-    visualize_performance(model ,x_test, y_test, y_pred, ModelName)
-    visualize_metrics(y_test, y_pred, y_test_class, y_pred_class, ModelName)
+    #visualize_performance(model ,x_test, y_test, y_pred, ModelName)
+    #visualize_metrics(y_test, y_pred, y_test_class, y_pred_class, ModelName)
 
 
 def visualize_performance(model, X_test, y_test, y_pred, ModelName =""):
@@ -262,7 +317,7 @@ def visualize_performance(model, X_test, y_test, y_pred, ModelName =""):
     plt.suptitle(str(ModelName) + ' Performance Dashboard', y=0.99, fontsize=16, fontweight='bold')
     
     # Create subplots grid
-    gs = gridspec.GridSpec(2, 4, width_ratios=[1, 1, 0.7, 1])
+    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 0.7, 1])
     
     # 1. Actual vs Predicted Plot (using X_test data)
     ax1 = plt.subplot(gs[0, 0])
@@ -327,13 +382,6 @@ def visualize_performance(model, X_test, y_test, y_pred, ModelName =""):
                 ha='center', va='center')
         plt.axis('off')
     
-    # 5. Error Distribution
-    ax5 = plt.subplot(gs[1, :])
-    residuals = y_test - y_pred
-    sns.histplot(residuals, kde=True, bins=30, color='#2ecc71')
-    plt.axvline(0, color='#e74c3c', linestyle='--')
-    plt.xlabel('Prediction Error (Actual - Predicted)')
-    plt.title('Error Distribution')
     
     plt.tight_layout()
     plt.show()
@@ -430,6 +478,71 @@ def process_data(entry, train_columns=None, frequent_titles=None):
 def predict_salary(model, processed_data):
     return model.predict(processed_data)[0]
 
+
+
+def plot_combined_roc(models, model_names, X_test, y_test, n_classes=3):
+    """
+    Plot ROC curves for multiple models in one plot with enhanced visibility
+    """
+    # Binarize the true labels
+    y_test_bin = label_binarize(pd.qcut(y_test, q=3, labels=False), classes=range(n_classes))
+    
+    # Create larger figure with adjusted DPI
+    plt.figure(figsize=(16, 12), dpi=100)
+    colors = cycle(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'])
+    line_styles = cycle(['-', '--', '-.', ':', '-', '--'])
+    markers = cycle(['o', 's', 'D', '^', 'v', 'p'])
+    
+    # Increase spacing between elements
+    plt.rcParams.update({'font.size': 14})
+
+    for model, name, color, ls, marker in zip(models, model_names, colors, line_styles, markers):
+        try:
+            # Get predictions and bin them
+            y_pred = model.predict(X_test)
+            y_pred_bin = label_binarize(pd.qcut(y_pred, q=3, labels=False), classes=range(n_classes))
+            
+            # Calculate ROC metrics
+            fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_pred_bin.ravel())
+            roc_auc = auc(fpr, tpr)
+            
+            # Plot with thicker lines and markers
+            plt.plot(fpr, tpr,
+                     color=color,
+                     linestyle=ls,
+                     linewidth=3,
+                     marker=marker,
+                     markersize=8,
+                     markevery=0.1,  # Add marker every 10% of points
+                     label=f'{name} (AUC = {roc_auc:.3f})')  # 3 decimal precision
+            
+        except Exception as e:
+            print(f"Error processing {name}: {str(e)}")
+            continue
+
+    # Formatting adjustments
+    plt.plot([0, 1], [0, 1], 'k--', linewidth=1)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate', fontsize=10, labelpad = 10)
+    plt.ylabel('True Positive Rate', fontsize=10, labelpad = 10)
+    plt.title('Model ROC Curve Comparison (Micro-Average)', fontsize=18, pad=15)
+    
+    # Enhanced legend
+    legend = plt.legend(bbox_to_anchor=(1.32, 0.95), loc='upper right',
+                       fontsize=12, title='Models', title_fontsize=14,
+                       frameon=True, framealpha=0.9)
+    
+    # Add grid with higher contrast
+    plt.grid(True, alpha=0.4, linestyle='--')
+    
+    # Add text annotation for better scale reading
+    plt.text(0.6, 0.05, f'Total Models: {len(models)}',
+            fontsize=12, alpha=0.8)
+    
+    plt.tight_layout()
+    plt.show()
+
 # Execute pipeline l main function win we will call the previous functions
 if __name__ == '__main__':
     # Load and preprocess data
@@ -437,7 +550,7 @@ if __name__ == '__main__':
     df = preprocess_data(df)
     
     # Plot distributions with original data
-    #plot_distributions(df)
+    plot_distributions(df)
     
     # Detect and show outliers
     outliers = detect_outliers(df)
@@ -474,3 +587,9 @@ if __name__ == '__main__':
 
     print("\nLasso evaluation")
     evaluate_model(lasso_model, x_test, y_test, "Lasso evaluation")
+
+    models = [lr, rfr, dtr, xgb_model, svr_model, lasso_model]
+    model_names = ['Linear Regression', 'Random Forest', 'Decision Tree', 
+                'XGBoost', 'SVR', 'Lasso']
+
+    #plot_combined_roc(models, model_names, x_test, y_test)
