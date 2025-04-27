@@ -1,4 +1,5 @@
 # Importing Libraries
+from matplotlib import gridspec
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +16,16 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import xgboost as xgb
 import pickle
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    roc_curve,
+    auc,
+    RocCurveDisplay,
+    confusion_matrix
+)
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics import r2_score, explained_variance_score
 
 
 # here we load data put csv file next to this script
@@ -89,11 +100,11 @@ def plot_distributions(df):
 
 def plot_correlations(df):
     # Now using fully encoded data
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 6))
     sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
     plt.title('Correlation Plot')
-    plt.xticks(rotation=60)
-    plt.yticks(rotation=60)
+    plt.xticks(rotation=15)
+    plt.yticks(rotation=0)
     plt.show()
 
 # IDK what this do Im gonna ask oumeyma XD
@@ -208,11 +219,181 @@ def train_models():
 
 
 # this is evaluation
-def evaluate_model(model, x_test, y_test):
+def evaluate_model(model, x_test, y_test, ModelName=""):
     y_pred = model.predict(x_test)
-    print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
-    print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
-    print("Root Mean Squared Error:", np.sqrt(mean_squared_error(y_test, y_pred)))
+
+    # Convert to classification by binning salaries
+    y_test_class = pd.qcut(y_test, q=3, labels=["low", "medium", "high"])
+    y_pred_class = pd.qcut(y_pred, q=3, labels=["low", "medium", "high"])
+
+    # Print metrics
+    print("="*50)
+    print(" MODEL EVALUATION ".center(50, "="))
+    print("="*50)
+    print(f"\nRegression Metrics:")
+    print(f"R² Score: {r2_score(y_test, y_pred):.4f}")
+    print(f"Explained Variance: {explained_variance_score(y_test, y_pred):.4f}")
+    print(f"MAE: {mean_absolute_error(y_test, y_pred):,.2f}")
+    print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred)):,.2f}")
+    
+    print(f"\nClassification Metrics:")
+    print(f"Precision: {precision_score(y_test_class, y_pred_class, average='weighted'):.4f}")
+    print(f"Recall: {recall_score(y_test_class, y_pred_class, average='weighted'):.4f}")
+
+    visualize_performance(model ,x_test, y_test, y_pred, ModelName)
+    visualize_metrics(y_test, y_pred, y_test_class, y_pred_class, ModelName)
+
+
+def visualize_performance(model, X_test, y_test, y_pred, ModelName =""):
+    plt.figure(figsize=(20, 10))
+    
+    # Calculate necessary metrics
+    y_test_class = pd.qcut(y_test, q=3, labels=["low", "medium", "high"])
+    y_pred_class = pd.qcut(y_pred, q=3, labels=["low", "medium", "high"])
+    
+    # ROC Curve calculations
+    lb = LabelBinarizer()
+    y_test_bin = lb.fit_transform(y_test_class)
+    y_pred_bin = lb.transform(y_pred_class)
+    fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_pred_bin.ravel())
+    roc_auc = auc(fpr, tpr)
+    
+    # Create main title
+    plt.suptitle(str(ModelName) + ' Performance Dashboard', y=0.99, fontsize=16, fontweight='bold')
+    
+    # Create subplots grid
+    gs = gridspec.GridSpec(2, 4, width_ratios=[1, 1, 0.7, 1])
+    
+    # 1. Actual vs Predicted Plot (using X_test data)
+    ax1 = plt.subplot(gs[0, 0])
+    sns.scatterplot(x=y_test, y=y_pred, 
+                   hue=X_test['Years of Experience'],  # Using X_test data
+                   palette='viridis', 
+                   alpha=0.7)
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+    plt.xlabel('Actual Salary')
+    plt.ylabel('Predicted Salary')
+    plt.title('Actual vs Predicted Values (Colored by Experience)')
+    
+    # Add regression metrics
+    textstr = '\n'.join((
+        f'R²: {r2_score(y_test, y_pred):.2f}',
+        f'Explained Variance: {explained_variance_score(y_test, y_pred):.2f}',
+        f'MAE: ${mean_absolute_error(y_test, y_pred):,.0f}',
+        f'RMSE: ${np.sqrt(mean_squared_error(y_test, y_pred)):,.0f}'
+    ))
+    props = dict(boxstyle='round', facecolor='white', alpha=0.8)
+    ax1.text(0.05, 0.95, textstr, transform=ax1.transAxes, 
+            verticalalignment='top', bbox=props)
+    
+    # 2. ROC Curve
+    ax2 = plt.subplot(gs[0, 1])
+    RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc).plot(ax=ax2)
+    plt.title(f'ROC Curve (AUC = {roc_auc:.2f})')
+    
+    # 3. Classification Metrics
+    ax3 = plt.subplot(gs[0, 2])
+    metrics_df = pd.DataFrame({
+        'Metric': ['Precision', 'Recall', 'AUC'],
+        'Value': [
+            precision_score(y_test_class, y_pred_class, average='weighted'),
+            recall_score(y_test_class, y_pred_class, average='weighted'),
+            roc_auc
+        ]
+    })
+    sns.barplot(x='Metric', y='Value', data=metrics_df, palette='rocket')
+    plt.ylim(0, 1)
+    plt.title('Classification Metrics')
+    
+    # Add value labels
+    for p in ax3.patches:
+        ax3.annotate(f"{p.get_height():.2f}", 
+                    (p.get_x() + p.get_width() / 2., p.get_height()),
+                    ha='center', va='center', xytext=(0, 5), 
+                    textcoords='offset points')
+    
+    # 4. Feature Importance (using model parameter)
+    ax4 = plt.subplot(gs[0, 3])
+    try:
+        importances = model.feature_importances_
+        feature_names = X_test.columns
+        importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+        importance_df = importance_df.sort_values('Importance', ascending=False).head(10)
+        
+        sns.barplot(x='Importance', y='Feature', data=importance_df, palette='Blues_d')
+        plt.title('Top 10 Feature Importances')
+    except AttributeError:
+        plt.text(0.5, 0.5, 'Feature Importance not available\nfor this model type', 
+                ha='center', va='center')
+        plt.axis('off')
+    
+    # 5. Error Distribution
+    ax5 = plt.subplot(gs[1, :])
+    residuals = y_test - y_pred
+    sns.histplot(residuals, kde=True, bins=30, color='#2ecc71')
+    plt.axvline(0, color='#e74c3c', linestyle='--')
+    plt.xlabel('Prediction Error (Actual - Predicted)')
+    plt.title('Error Distribution')
+    
+    plt.tight_layout()
+    plt.show()
+
+from matplotlib.colors import LinearSegmentedColormap
+
+def visualize_metrics(y_test, y_pred, y_test_class=None, y_pred_class=None, ModelName=""):
+    # Calculate metrics
+    metrics = {
+        'Regression': {
+            'MSE': mean_squared_error(y_test, y_pred),
+            'MAE': mean_absolute_error(y_test, y_pred),
+            'RMSE': np.sqrt(mean_squared_error(y_test, y_pred)),
+            'R²': r2_score(y_test, y_pred),
+            'Explained Variance': explained_variance_score(y_test, y_pred)
+        }
+    }
+    
+    if y_test_class is not None and y_pred_class is not None:
+        metrics['Classification'] = {
+            'Precision': precision_score(y_test_class, y_pred_class, average='weighted'),
+            'Recall': recall_score(y_test_class, y_pred_class, average='weighted')
+        }
+
+    # Create visualization
+    plt.figure(figsize=(10, 4))
+    ax = plt.gca()
+    ax.axis('off')
+    
+    # Create color gradient
+    cmap = LinearSegmentedColormap.from_list('metrics', ['#2ecc71', '#3498db'])
+    
+    # Build table data
+    cell_text = []
+    for category, cat_metrics in metrics.items():
+        for name, value in cat_metrics.items():
+            formatted_value = f"{value:.4f}" if isinstance(value, float) else f"{value:,.2f}"
+            cell_text.append([category, name, formatted_value])
+    
+    # Create table
+    table = plt.table(cellText=cell_text,
+                     colLabels=['Category', 'Metric', 'Value'],
+                     loc='center',
+                     cellLoc='center',
+                     colColours=['#f8f9fa']*3,
+                     cellColours=[cmap([0.2]*3)] * len(cell_text))
+    
+    # Style table
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1, 1.5)
+    
+    # Highlight headers
+    for (i, j), cell in table.get_celld().items():
+        if i == 0:  # Header row
+            cell.set_facecolor('#34495e')
+            cell.set_text_props(color='white', weight='bold')
+    
+    plt.title(str(ModelName) + ' Values Table Metrics', pad=20, fontsize=14, weight='bold')
+    plt.show()
 
 def save_model(model):
     pickle.dump(model, open('model.pkl', 'wb'))
@@ -256,7 +437,7 @@ if __name__ == '__main__':
     df = preprocess_data(df)
     
     # Plot distributions with original data
-    plot_distributions(df)
+    #plot_distributions(df)
     
     # Detect and show outliers
     outliers = detect_outliers(df)
@@ -268,29 +449,28 @@ if __name__ == '__main__':
     encoded_df = encode_features(df.copy())
     
     # Plot correlations after encoding
-    plot_correlations(encoded_df)
+    #plot_correlations(encoded_df)
     
     # Continue with training and evaluation
     lr, rfr, dtr, xgb_model,svr_model , lasso_model, x_test, y_test, train_columns, frequent_titles = train_models()
     
     # Evaluate models
     print("\nLinear Regression Evaluation:")
-    evaluate_model(lr, x_test, y_test)
+    evaluate_model(lr, x_test, y_test, "Linear Regression")
     
     print("\nRandom Forest Evaluation:")
-    evaluate_model(rfr, x_test, y_test)
+    evaluate_model(rfr, x_test, y_test, "Random Forest")
     
     print("\nDecision Tree Evaluation:")
-    evaluate_model(dtr, x_test, y_test)
+    evaluate_model(dtr, x_test, y_test, "Decision Tree")
 
     print("\nXGBoost evaluation")
-    evaluate_model(xgb_model, x_test, y_test)
+    evaluate_model(xgb_model, x_test, y_test, "XGBoost evaluation")
     
     
     #here we print the SVR w Lasso regression algorithms
     print("\nSVR evaluation")
-    evaluate_model(svr_model, x_test, y_test)
-    
+    evaluate_model(svr_model, x_test, y_test, "SVR evaluation")
+
     print("\nLasso evaluation")
-    evaluate_model(lasso_model, x_test, y_test)
-    
+    evaluate_model(lasso_model, x_test, y_test, "Lasso evaluation")
