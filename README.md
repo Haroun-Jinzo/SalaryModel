@@ -32,6 +32,7 @@ An end-to-end machine learning system for salary prediction using employee demog
 
 ## 🚀 Deployment Architecture
 
+    ```mermaid
     sequenceDiagram
         participant A as User
         participant B as Streamlit
