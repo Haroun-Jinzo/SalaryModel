@@ -29,3 +29,11 @@ graph TD
     G --> H[Model Deployment]
     H --> I[API Predictions]
     H --> J[Streamlit Dashboard]
+
+graph LR
+    A[Load Data] --> B[Handle Missing Values]
+    B --> C[Group Rare Job Titles]
+    C --> D[Standardize Education Levels]
+    D --> E[Encode Categorical Features]
+    E --> F[Create Dummy Variables]
+    F --> G[Train-Test Split]
