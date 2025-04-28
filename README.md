@@ -30,6 +30,8 @@ graph TD
     H --> I[API Predictions]
     H --> J[Streamlit Dashboard]
 
+
+```mermaid
 sequenceDiagram
     participant User
     participant Streamlit
