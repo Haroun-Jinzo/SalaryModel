@@ -30,11 +30,15 @@ graph TD
     H --> I[API Predictions]
     H --> J[Streamlit Dashboard]
 
-```mermaid
-graph LR
-    A[Load Data] --> B[Handle Missing Values]
-    B --> C[Group Rare Job Titles]
-    C --> D[Standardize Education Levels]
-    D --> E[Encode Categorical Features]
-    E --> F[Create Dummy Variables]
-    F --> G[Train-Test Split]
+sequenceDiagram
+    participant User
+    participant Streamlit
+    participant Flask
+    participant Model
+    
+    User->>Streamlit: Input Features
+    Streamlit->>Flask: POST /predict
+    Flask->>Model: Preprocess + Predict
+    Model-->>Flask: Prediction
+    Flask-->>Streamlit: JSON Response
+    Streamlit-->>User: Display Result
