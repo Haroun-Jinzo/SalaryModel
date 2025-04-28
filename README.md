@@ -37,7 +37,6 @@ sequenceDiagram
     participant Streamlit
     participant Flask
     participant Model
-    
     User->>Streamlit: Input Features
     Streamlit->>Flask: POST /predict
     Flask->>Model: Preprocess + Predict
