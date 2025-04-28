@@ -30,18 +30,3 @@ An end-to-end machine learning system for salary prediction using employee demog
         H --> I[API Predictions]
         H --> J[Streamlit Dashboard]
 
-## 🚀 Deployment Architecture
-
-    ```mermaid
-    sequenceDiagram
-        participant A as User
-        participant B as Streamlit
-        participant C as Flask
-        participant D as Model
-        
-        A->>B: Input Features
-        B->>C: POST /predict
-        C->>D: Preprocess + Predict
-        D-->>C: Prediction
-        C-->>B: JSON Response
-        B-->>A: Display Result
