@@ -18,15 +18,15 @@ An end-to-end machine learning system for salary prediction using employee demog
 
 ## 🔄 Workflow Diagram
 
-    ```mermaid
-    graph TD
-        A[Raw Data] --> B{Preprocessing}
-        B -->|Clean & Transform| C[Processed Data]
-        C --> D{Feature Engineering}
-        D -->|Encode & Create Features| E[Training Data]
-        E --> F[Model Training]
-        F --> G[Model Evaluation]
-        G --> H[Model Deployment]
-        H --> I[API Predictions]
-        H --> J[Streamlit Dashboard]
+```mermaid
+graph TD
+    A[Raw Data] --> B{Preprocessing}
+    B -->|Clean & Transform| C[Processed Data]
+    C --> D{Feature Engineering}
+    D -->|Encode & Create Features| E[Training Data]
+    E --> F[Model Training]
+    F --> G[Model Evaluation]
+    G --> H[Model Deployment]
+    H --> I[API Predictions]
+    H --> J[Streamlit Dashboard]
 
