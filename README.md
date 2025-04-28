@@ -18,26 +18,29 @@ An end-to-end machine learning system for salary prediction using employee demog
 
 ## 🔄 Workflow Diagram
 
-```mermaid
-graph TD
-    A[Raw Data] --> B{Preprocessing}
-    B -->|Clean & Transform| C[Processed Data]
-    C --> D{Feature Engineering}
-    D -->|Encode & Create Features| E[Training Data]
-    E --> F[Model Training]
-    F --> G[Model Evaluation]
-    G --> H[Model Deployment]
-    H --> I[API Predictions]
-    H --> J[Streamlit Dashboard]
+    ```mermaid
+    graph TD
+        A[Raw Data] --> B{Preprocessing}
+        B -->|Clean & Transform| C[Processed Data]
+        C --> D{Feature Engineering}
+        D -->|Encode & Create Features| E[Training Data]
+        E --> F[Model Training]
+        F --> G[Model Evaluation]
+        G --> H[Model Deployment]
+        H --> I[API Predictions]
+        H --> J[Streamlit Dashboard]
 
-sequenceDiagram
-    participant User
-    participant Streamlit
-    participant Flask
-    participant Model
-    User->>Streamlit: Input Features
-    Streamlit->>Flask: POST /predict
-    Flask->>Model: Preprocess + Predict
-    Model-->>Flask: Prediction
-    Flask-->>Streamlit: JSON Response
-    Streamlit-->>User: Display Result
+## 🚀 Deployment Architecture
+
+    sequenceDiagram
+        participant A as User
+        participant B as Streamlit
+        participant C as Flask
+        participant D as Model
+        
+        A->>B: Input Features
+        B->>C: POST /predict
+        C->>D: Preprocess + Predict
+        D-->>C: Prediction
+        C-->>B: JSON Response
+        B-->>A: Display Result
