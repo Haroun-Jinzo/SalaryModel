@@ -30,6 +30,7 @@ graph TD
     H --> I[API Predictions]
     H --> J[Streamlit Dashboard]
 
+```mermaid
 graph LR
     A[Load Data] --> B[Handle Missing Values]
     B --> C[Group Rare Job Titles]
