@@ -34,6 +34,16 @@ An end-to-end system for predicting salaries based on employee demographics usin
   - Education levels standardized
   - Categorical features encoded
 
+
+  ```mermaid
+  sequenceDiagram
+      A[User]->>B[Streamlit]: Submit Form
+      B[Streamlit]->>C[Flask]: POST /predict
+      C[Flask]->>D[Model]: Process Request
+      D[Model]->>C[Flask]: Return Prediction
+      C[Flask]->>B[Streamlit]: JSON Response
+      B[Streamlit]->>A[User]: Show Result
+
 ## 🔄 Workflow Diagram
   ```mermaid
   graph TD
@@ -45,11 +55,3 @@ An end-to-end system for predicting salaries based on employee demographics usin
       E --> G[Save Models]
       F --> H[Performance Metrics]
 
-  ```mermaid
-  sequenceDiagram
-      A[User]->>B[Streamlit]: Submit Form
-      B[Streamlit]->>C[Flask]: POST /predict
-      C[Flask]->>D[Model]: Process Request
-      D[Model]->>C[Flask]: Return Prediction
-      C[Flask]->>B[Streamlit]: JSON Response
-      B[Streamlit]->>A[User]: Show Result
