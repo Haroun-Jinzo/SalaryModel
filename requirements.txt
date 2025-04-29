@@ -25,5 +25,4 @@ xgboost
 svr
 plotly
 gunicorn
-requests
 pickle
