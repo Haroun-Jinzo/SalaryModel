@@ -34,16 +34,39 @@ An end-to-end system for predicting salaries based on employee demographics usin
   - Education levels standardized
   - Categorical features encoded
 
+## Introduction
+- Salary prediction is crucial for the labor market, career management, and workforce planning.
 
-  ```mermaid
-  sequenceDiagram
-      A[User]->>B[Streamlit]: Submit Form
-      B[Streamlit]->>C[Flask]: POST /predict
-      C[Flask]->>D[Model]: Process Request
-      D[Model]->>C[Flask]: Return Prediction
-      C[Flask]->>B[Streamlit]: JSON Response
-      B[Streamlit]->>A[User]: Show Result
+- Traditional methods often rely on surveys and historical data, which may be biased or not scalable.
 
+- Machine learning (ML) models provide more accurate salary predictions compared to traditional methods.
+
+
+     ## 🔄 Workflow Diagram
+      ```mermaid
+      graph TD
+          A[Raw Data] --> B{Preprocessing}
+          B -->|Clean Data| C[Feature Engineering]
+          C -->|Encode Features| D[Train-Test Split]
+          D -->|75% Training| E[Model Training]
+          D -->|25% Testing| F[Model Evaluation]
+          E --> G[Save Models]
+          F --> H[Performance Metrics]
+
+
+    ## 🔄 Sequence Diagram
+    ```mermaid
+    sequenceDiagram
+        A[User]->>B[Streamlit]: Submit Form
+        B[Streamlit]->>C[Flask]: POST /predict
+        C[Flask]->>D[Model]: Process Request
+        D[Model]->>C[Flask]: Return Prediction
+        C[Flask]->>B[Streamlit]: JSON Response
+        B[Streamlit]->>A[User]: Show Result
+
+  
+
+### Evaluation Metrics Table
 | Model              | R²     | Precision | Recall | Explained Variance |
 |--------------------|--------|-----------|--------|---------------------|
 | Linear Regression  | 0.8884 | 0.8508    | 0.8511 | 0.8901             |
@@ -53,13 +76,3 @@ An end-to-end system for predicting salaries based on employee demographics usin
 | SVR                | 0.5513 | 0.8398    | 0.8404 | 0.5570             |
 | Lasso              | 0.8884 | 0.8508    | 0.8511 | 0.8901             |
 
-## 🔄 Workflow Diagram
-  ```mermaid
-  graph TD
-      A[Raw Data] --> B{Preprocessing}
-      B -->|Clean Data| C[Feature Engineering]
-      C -->|Encode Features| D[Train-Test Split]
-      D -->|75% Training| E[Model Training]
-      D -->|25% Testing| F[Model Evaluation]
-      E --> G[Save Models]
-      F --> H[Performance Metrics]
