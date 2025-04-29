@@ -44,6 +44,15 @@ An end-to-end system for predicting salaries based on employee demographics usin
       C[Flask]->>B[Streamlit]: JSON Response
       B[Streamlit]->>A[User]: Show Result
 
+| Model              | R²     | Precision | Recall | Explained Variance |
+|--------------------|--------|-----------|--------|---------------------|
+| Linear Regression  | 0.8884 | 0.8508    | 0.8511 | 0.8901             |
+| Random Forest      | 0.8707 | 0.8957    | 0.8936 | 0.8751             |
+| Decision Tree      | 0.8594 | 0.8623    | 0.8617 | 0.8649             |
+| Xgboost            | 0.8772 | 0.8856    | 0.8830 | 0.8786             |
+| SVR                | 0.5513 | 0.8398    | 0.8404 | 0.5570             |
+| Lasso              | 0.8884 | 0.8508    | 0.8511 | 0.8901             |
+
 ## 🔄 Workflow Diagram
   ```mermaid
   graph TD
@@ -54,4 +63,3 @@ An end-to-end system for predicting salaries based on employee demographics usin
       D -->|25% Testing| F[Model Evaluation]
       E --> G[Save Models]
       F --> H[Performance Metrics]
-
