@@ -1,5 +1,4 @@
 #requirements.txt
-python==3.10
 numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.6.1
