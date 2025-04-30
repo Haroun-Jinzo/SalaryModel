@@ -19,8 +19,6 @@ models = {
 }
 
 def preprocess_input(data):
-    """Transform raw input data into model-ready format"""
-    # Create base input DataFrame
     input_df = pd.DataFrame([{
         'Age': data['Age'],
         'Years of Experience': data['Years of Experience'],

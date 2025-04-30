@@ -12,11 +12,9 @@ def main():
     st.set_page_config(page_title="Salary Predictor", layout="wide")
     
     st.title("💰 Salary Prediction Dashboard")
-    st.markdown("Explore salary predictions with interactive visualizations")
+    st.markdown("Explore salary predictions machine learning models.")
     
-    # ====================
-    # Input Section
-    # ====================
+
     with st.expander("⚡ Prediction Interface", expanded=True):
         col1, col2 = st.columns([2, 3])
         
@@ -73,9 +71,7 @@ def main():
                     except Exception as e:
                         st.error(f"System Error: {str(e)}")
 
-    # ====================
-    # Feature Analysis
-    # ====================
+
     st.markdown("---")
     with st.expander("📊 Feature Impact Analysis", expanded=True):
         col3, col4 = st.columns(2)
@@ -99,9 +95,7 @@ def main():
                         color_discrete_sequence=px.colors.qualitative.Pastel)
             st.plotly_chart(fig2, use_container_width=True)
 
-    # ====================
-    # Model Comparison
-    # ====================
+
     st.markdown("---")
     with st.expander("🤖 Model Performance Comparison", expanded=True):
         model_metrics = {
@@ -126,15 +120,14 @@ def main():
             fig3.update_traces(textposition="top center")
             st.plotly_chart(fig3, use_container_width=True)
 
-    # ====================
-    # Sidebar
-    # ====================
+
     st.sidebar.header("System Information")
     st.sidebar.markdown("""
         - **Data Source**: Salary-Data.csv (376 records)
-        - **Last Trained**: 2023-08-20
-        - **API Version**: 1.2.0
-        - **Dashboard Version**: 2.1.0
+        - **This Data is Based on United states Salary Data**.
+        - **Model Types**: Linear Regression, Random Forest, XGBoost, SVR, Lasso
+        - **fill in the blanks and choose the job title, education level, years of experience, age, gender and Model Type**.
+        - **Execute and observe the results**.
     """)
     
     st.sidebar.markdown("---")

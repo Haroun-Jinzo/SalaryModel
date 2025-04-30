@@ -48,7 +48,38 @@ def encode_features(df):
 
 def train_and_save_models(x_train, y_train):
     model_configs = {
-        # ... keep existing model configs unchanged ...
+        'Linear_Regression': {
+            'model': LinearRegression(),
+            'params': {}
+        },
+        'Random_Forest': {
+            'model': RandomForestRegressor(),
+            'params': {
+                'n_estimators': [50, 100],
+                'max_depth': [None, 10, 20]
+            }
+        },
+        'XGBoost': {
+            'model': xgb.XGBRegressor(),
+            'params': {
+                'n_estimators': [100, 200],
+                'learning_rate': [0.01, 0.1],
+                'max_depth': [3, 6]
+            }
+        },
+        'SVR': {
+            'model': SVR(),
+            'params': {
+                'kernel': ['linear', 'rbf'],
+                'C': [0.1, 1, 10]
+            }
+        },
+        'Lasso': {
+            'model': Lasso(),
+            'params': {
+                'alpha': [0.001, 0.01, 0.1]
+            }
+        }
     }
     
     for model_name, config in model_configs.items():
